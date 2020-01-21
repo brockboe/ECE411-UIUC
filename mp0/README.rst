@@ -997,6 +997,16 @@ receive full credit.  This means that you can think of the testbench as
 the specification.  Any pertinent specification details have been encoded
 as error producing procedural code within the testbench.
 
+Grading
+=======
+
+Each subproblem is worth one quarter of the total score.
+The points available for each verification subproblem are distributed uniformally over each
+coverage category.  Within each verification subproblem, False-Positive and False-Negative
+errors act as -1\% penalty, and subproblem scores are floored at 0.
+
+The design problem is pass/fail.  Since the design problem is self-grading, no partial credit
+is awarded.
 
 ModelSim
 ========

@@ -94,6 +94,48 @@ task check_reset();
 endtask : check_reset
 
 
+task check_reset_in_shift();
+      @(tb_clk);
+      itf.start <= 1'b1;
+      mult_operands <= 17'h15555;
+      @(tb_clk);
+      itf.start <= 1'b0;
+
+      while (itf.rdy == 1'b0) begin
+            @(tb_clk);
+            if (dut.ms.op == SHIFT) begin
+                  @(tb_clk);
+                  itf.reset_n <= 1'b0;
+                  //$display("Resetting! Next op, should be ADD (3'd5): %d", dut.ms.op);
+                  @(tb_clk);
+                  itf.reset_n <= 1'b1;
+            end
+      end
+
+endtask : check_reset_in_shift;
+
+
+task check_reset_in_add();
+      @(tb_clk);
+      itf.start <= 1'b1;
+      mult_operands <= 17'h15555;
+      @(tb_clk);
+      itf.start <= 1'b0;
+
+      while (itf.rdy == 1'b0) begin
+            @(tb_clk);
+            if (dut.ms.op == ADD) begin
+                  @(tb_clk);
+                  itf.reset_n <= 1'b0;
+                  //$display("Resetting! Next op, should be SHIFT (3'd6): %d", dut.ms.op);
+                  @(tb_clk);
+                  itf.reset_n <= 1'b1;
+            end
+      end
+
+endtask : check_reset_in_add
+
+
 // Every time the reset signal is set
 // ensure that the ready signal updates
 // itself accordingly
@@ -127,6 +169,8 @@ initial begin
     end
 
     check_reset();
+    check_reset_in_shift();
+    check_reset_in_add();
 
     /*******************************************************************/
     itf.finish(); // Use this finish task in order to let grading harness

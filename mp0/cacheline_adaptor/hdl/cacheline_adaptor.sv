@@ -19,4 +19,59 @@ module cacheline_adaptor
     output logic write_o,
     input resp_i
 );
+
+logic [255:0] int_buffer;
+assign address_o = address_i;
+
+always @ (posedge clk) begin
+      if (~reset_n) begin
+            resp_o <= 1'b0;
+            read_o <= 1'b0;
+            write_o <= 1'b0;
+      end else begin
+            if(read_i) begin
+                  read_o <= 1'b1;
+                  write_o <= 1'b0;
+
+                  for(int i = 0; i < 4; ++i) begin
+                        @(posedge clk iff resp_i);
+                        int_buffer[64*i +: 64] <= burst_i;
+                        //$display("Filling buffer: %d / 4", i+1);
+                  end
+                  //$display(" ");
+
+                  @(posedge clk);
+                  line_o <= int_buffer;
+                  resp_o <= 1'b1;
+
+                  @(posedge clk);
+                  resp_o <= 1'b0;
+                  read_o <= 1'b0;
+                  write_o <= 1'b0;
+
+            end else if (write_i) begin
+
+                  for(int i = 0; i < 4; ++i) begin
+                        read_o <= 1'b0;
+                        write_o <= 1'b1;
+                        resp_o <= 1'b0;
+
+                        resp_o <= 1'b1;
+                        burst_o <= line_i[64*i +: 64];
+                        @(posedge clk iff resp_i);
+                  end
+
+                  @(posedge clk);
+                  resp_o <= 1'b0;
+                  write_o <= 1'b0;
+                  read_o <= 1'b0;
+
+            end else begin
+                  resp_o <= 1'b0;
+                  write_o <= 1'b0;
+                  read_o <= 1'b0;
+            end
+      end
+end
+
 endmodule : cacheline_adaptor

@@ -109,13 +109,10 @@ endtask : dequeue
 // dequeue and enqueue at the same time, as the final
 // coverage requirement
 task simultaneous();
-      @(tb_clk);
-      itf.valid_i <= 1'b1;
-      itf.yumi <= 1'b0;
-      itf.data_i <= 8'd0;
 
       for(int i = 0; i < 256; ++i) begin
             @(tb_clk);
+            itf.valid_i <= 1'b1;
             itf.yumi <= 1'b0;
             //$display("simultaneous data_o: %d", itf.data_o);
             itf.data_i <= itf.data_i + 8'd1;

@@ -21,6 +21,7 @@ module cacheline_adaptor
 );
 
 logic [255:0] int_buffer;
+logic [4:0] counter;
 assign address_o = address_i;
 
 always @ (posedge clk) begin
@@ -28,6 +29,7 @@ always @ (posedge clk) begin
             resp_o <= 1'b0;
             read_o <= 1'b0;
             write_o <= 1'b0;
+            counter <= 5'd0;
       end else begin
             if(read_i) begin
                   read_o <= 1'b1;
@@ -51,13 +53,12 @@ always @ (posedge clk) begin
 
             end else if (write_i) begin
 
-                  for(int i = 0; i < 4; ++i) begin
-                        read_o <= 1'b0;
-                        write_o <= 1'b1;
-                        resp_o <= 1'b0;
+                  write_o <= 1'b1;
+                  read_o <= 1'b0;
 
-                        resp_o <= 1'b1;
+                  for(int i = 0; i < 4; i++) begin
                         burst_o <= line_i[64*i +: 64];
+                        resp_o <= 1'b1;
                         @(posedge clk iff resp_i);
                   end
 
@@ -70,6 +71,7 @@ always @ (posedge clk) begin
                   resp_o <= 1'b0;
                   write_o <= 1'b0;
                   read_o <= 1'b0;
+                  counter <= 5'd0;
             end
       end
 end

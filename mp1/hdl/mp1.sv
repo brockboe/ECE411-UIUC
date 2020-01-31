@@ -1,4 +1,5 @@
 import rv32i_types::*;
+import datapath_types::*;
 
 module mp1
 (
@@ -29,10 +30,27 @@ cmpmux::cmpmux_sel_t cmpmux_sel;
 
 /* Instantiate MP 1 top level blocks here */
 
+datapath_sig dpath_connector;
+control_sig ctrl_connector;
+
 // Keep control named `control` for RVFI Monitor
-control control(.*);
+control control(
+      .clk(clk),
+      .rst(rst),
+      .dpath_status(dpath_connector),
+      .ctrl_out(ctrl_connector)
+);
 
 // Keep datapath named `datapath` for RVFI Monitor
-datapath datapath(.*);
+datapath datapath(
+      .clk(clk),
+      .rst(rst),
+      .ctrl_in(ctrl_connector),
+
+      .mem_rdata(mem_rdata),
+      .mem_wdata(mem_wdata),
+      .mem_address(mem_address),
+      .dpath_out(dpath_connector)
+);
 
 endmodule : mp1

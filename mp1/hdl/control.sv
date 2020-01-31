@@ -1,9 +1,15 @@
 import rv32i_types::*; /* Import types defined in rv32i_types.sv */
+import datapath_types::*;
 
 module control
 (
     input clk,
     input rst,
+
+    input datapath_sig dpath_status,
+
+    output control_sig ctrl_out
+    /*
     input rv32i_opcode opcode,
     input logic [2:0] funct3,
     input logic [6:0] funct7,
@@ -23,6 +29,7 @@ module control
     output logic load_mar,
     output logic load_mdr,
     output logic load_data_out
+    */
 );
 
 /***************** USED BY RVFIMON --- ONLY MODIFY WHEN TOLD *****************/
@@ -35,12 +42,12 @@ store_funct3_t store_funct3;
 load_funct3_t load_funct3;
 arith_funct3_t arith_funct3;
 
-assign arith_funct3 = arith_funct3_t'(funct3);
-assign branch_funct3 = branch_funct3_t'(funct3);
-assign load_funct3 = load_funct3_t'(funct3);
-assign store_funct3 = store_funct3_t'(funct3);
-assign rs1_addr = rs1;
-assign rs2_addr = rs2;
+assign arith_funct3 = arith_funct3_t'(dpath_status.funct3);
+assign branch_funct3 = branch_funct3_t'(dpath_status.funct3);
+assign load_funct3 = load_funct3_t'(dpath_status.funct3);
+assign store_funct3 = store_funct3_t'(dpath_status.funct3);
+assign rs1_addr = dpath_status.rs1;
+assign rs2_addr = dpath_status.rs2;
 
 always_comb
 begin : trap_check
@@ -48,7 +55,7 @@ begin : trap_check
     rmask = '0;
     wmask = '0;
 
-    case (opcode)
+    case (dpath_status.opcode)
         op_lui, op_auipc, op_imm, op_reg, op_jal, op_jalr:;
 
         op_br: begin
@@ -60,18 +67,18 @@ begin : trap_check
 
         op_load: begin
             case (load_funct3)
-                lw: rmask = 4'b1111;
-                lh, lhu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
-                lb, lbu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                rv32i_types::lw: rmask = 4'b1111;
+                //lh, lhu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                //lb, lbu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
 
         op_store: begin
             case (store_funct3)
-                sw: wmask = 4'b1111;
-                sh: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
-                sb: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                rv32i_types::sw: wmask = 4'b1111;
+                //sh: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                //sb: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -83,6 +90,19 @@ end
 
 enum int unsigned {
     /* List of states */
+    fetch1        = 0,
+    fetch2        = 1,
+    fetch3        = 2,
+    decode        = 3,
+    imm           = 4,
+    lui           = 5,
+    calc_addr     = 6,
+    ld1           = 7,
+    ld2           = 8,
+    st1           = 9,
+    st2           = 10,
+    auipc         = 11,
+    br            = 12
 } state, next_states;
 
 /************************* Function Definitions *******************************/
@@ -92,7 +112,7 @@ enum int unsigned {
  *  function, then you only need to ensure that you set the load_regfile bit
  *  to 1'b1 in one place, rather than in many.
  *
- *  SystemVerilog functions must take zero "simulation time" (as opposed to 
+ *  SystemVerilog functions must take zero "simulation time" (as opposed to
  *  tasks).  Thus, they are generally synthesizable, and appropraite
  *  for design code.  Arguments to functions are, by default, input.  But
  *  may be passed as outputs, inouts, or by reference using the `ref` keyword.
@@ -111,8 +131,8 @@ endfunction
  *  load various registers
 **/
 function void loadPC(pcmux::pcmux_sel_t sel);
-    load_pc = 1'b1;
-    pcmux_sel = sel;
+    ctrl_out.load_pc = 1'b1;
+    ctrl_out.pcmux_sel = sel;
 endfunction
 
 function void loadRegfile(regfilemux::regfilemux_sel_t sel);
@@ -135,7 +155,7 @@ function void setALU(alumux::alumux1_sel_t sel1,
 
 
     if (setop)
-        aluop = op; // else default value
+        ctrl_out.aluop = op; // else default value
 endfunction
 
 function automatic void setCMP(cmpmux::cmpmux_sel_t sel, branch_funct3_t op);

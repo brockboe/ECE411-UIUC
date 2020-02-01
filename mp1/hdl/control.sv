@@ -106,8 +106,8 @@ enum int unsigned {
     imm           = 4,
     lui           = 5,
     calc_addr     = 6,
-    ld1           = 7,
-    ld2           = 8,
+    ldr1           = 7,
+    ldr2           = 8,
     st1           = 9,
     st2           = 10,
     auipc         = 11,
@@ -208,6 +208,43 @@ begin : state_actions
       else if (state == fetch3) begin
             ctrl_out.load_ir = 1'b1;
       end
+
+      else if (state == auipc) begin
+            ctrl_out.alumux1_sel = alumux::pc_out;
+            ctrl_out.alumux2_sel = alumux::u_imm;
+            ctrl_out.load_regfile = 1'b1;
+            ctrl_out.load_pc = 1'b1;
+            ctrl_out.aluop = rv32i_types::alu_add;
+      end
+
+      else if (state == calc_addr) begin
+            ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.load_mar = 1'b1;
+            ctrl_out.marmux_sel = marmux::alu_out;
+      end
+
+      else if (state == ldr1) begin
+            ctrl_out.load_mdr = 1'b1;
+            mem_read = 1'b1;
+      end
+
+      else if (state == ldr2) begin
+            ctrl_out.regfilemux_sel = regfilemux::lw;
+            ctrl_out.load_regfile = 1'b1;
+            ctrl_out.load_pc = 1'b1;
+      end
+
+      else if (state == lui) begin
+            ctrl_out.load_regfile = 1'b1;
+            ctrl_out.load_pc = 1'b1;
+            ctrl_out.regfilemux_sel = regfilemux::u_imm;
+      end
+
+      else if (state == imm) begin
+            ctrl_out.load_regfile = 1'b1;
+            ctrl_out.load_pc = 1'b1;
+            ctrl_out.aluop = alu_ops ' (dpath_status.funct3);
+      end
 end
 
 always_comb
@@ -218,9 +255,8 @@ begin : next_state_logic
             next_state <= fetch1;
       end else begin
 
-            if(state == fetch1) begin
+            if(state == fetch1)
                   next_state <= fetch2;
-            end
 
             else if(state == fetch2) begin
                   if(mem_resp == 1'b0)
@@ -229,13 +265,43 @@ begin : next_state_logic
                         next_state <= fetch3;
             end
 
-            else if(state == fetch3) begin
+            else if(state == fetch3)
                   next_state <= decode;
+
+            else if(state == calc_addr)
+                  next_state <= ldr1;
+
+            else if(state == ldr1) begin
+                  if(mem_resp == 1'b0)
+                        next_state <= ldr1;
+                  else
+                        next_state <= ldr2;
             end
 
-            else begin
+            else if(state == ldr2)
                   next_state <= fetch1;
+
+            else if(state == decode) begin
+                  if(dpath_status.opcode == rv32i_types::op_auipc)
+                        next_state <= auipc;
+                  else if(dpath_status.opcode == rv32i_types::op_load)
+                        next_state <= calc_addr;
+                  else if(dpath_status.opcode == rv32i_types::op_lui)
+                        next_state <= lui;
+                  else if(dpath_status.opcode == rv32i_types::op_imm)
+                        next_state <= imm;
+                  else
+                        next_state <= fetch1;
             end
+
+            else if(state == lui)
+                  next_state <= fetch1;
+
+            else if(state == auipc)
+                  next_state <= fetch1;
+
+            else
+                  next_state <= fetch1;
 
       end
 end

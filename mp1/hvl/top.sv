@@ -38,6 +38,9 @@ assign MAR = dut.mem_address;
 
 logic [31:0] MDR;
 assign MDR = dut.datapath.glue.dpath.mdrreg_out;
+
+logic [31:0] registers [32];
+assign registers = dut.datapath.regfile.data;
 /*****************************************************************************/
 
 /************************** Testbench Instantiation **************************/

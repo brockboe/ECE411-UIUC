@@ -1,17 +1,14 @@
 import rv32i_types::*;
 import datapath_types::*;
 
-`define BAD_MUX_SEL $fatal("%0t %s %0d: Illegal cmpop select", $time, `__FILE__, `__LINE__)
+`define BAD_MUX_SEL_CMP $fatal("%0t %s %0d: Illegal cmpop select", $time, `__FILE__, `__LINE__)
 
 module cmp_module(
       input branch_funct3_t op,
       input rv32i_word a,
       input rv32i_word b,
-      output [31:0] rv32i_word out
+      output logic result
 );
-
-logic result;
-assign out = {31'd0, result};
 
 always_comb begin
       unique case (op)
@@ -21,7 +18,7 @@ always_comb begin
             rv32i_types::bge: result = ($signed(a) >= $signed(b));
             rv32i_types::bltu: result = (a < b);
             rv32i_types::bgeu: result = (a >= b);
-            default: `BAD_MUX_SEL;
+            default: `BAD_MUX_SEL_CMP;
       endcase
 end
 

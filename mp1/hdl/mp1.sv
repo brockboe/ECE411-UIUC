@@ -38,6 +38,9 @@ control control(
       .clk(clk),
       .rst(rst),
       .dpath_status(dpath_connector),
+      .mem_resp(mem_resp),
+      .mem_read(mem_read),
+      .mem_write(mem_write),
       .ctrl_out(ctrl_connector)
 );
 

@@ -1,5 +1,10 @@
 import rv32i_types::*; /* Import types defined in rv32i_types.sv */
 import datapath_types::*;
+import pcmux::*;
+import marmux::*;
+import cmpmux::*;
+import alumux::*;
+import regfilemux::*;
 
 module control
 (
@@ -7,7 +12,11 @@ module control
     input rst,
 
     input datapath_sig dpath_status,
+    input logic mem_resp,
 
+
+    output logic mem_read,
+    output logic mem_write,
     output control_sig ctrl_out
     /*
     input rv32i_opcode opcode,
@@ -103,7 +112,7 @@ enum int unsigned {
     st2           = 10,
     auipc         = 11,
     br            = 12
-} state, next_states;
+} state, next_state;
 
 /************************* Function Definitions *******************************/
 /**
@@ -124,6 +133,22 @@ enum int unsigned {
  *   and then call it at the beginning of your always_comb block.
 **/
 function void set_defaults();
+      ctrl_out.load_pc = 1'b0;
+      ctrl_out.load_ir = 1'b0;
+      ctrl_out.load_regfile = 1'b0;
+      ctrl_out.load_mar = 1'b0;
+      ctrl_out.load_mdr = 1'b0;
+      ctrl_out.load_data_out = 1'b0;
+      ctrl_out.pcmux_sel = pcmux::pc_plus4;
+      ctrl_out.alumux1_sel = alumux::rs1_out;
+      ctrl_out.alumux2_sel = alumux::i_imm;
+      ctrl_out.regfilemux_sel = regfilemux::alu_out;
+      ctrl_out.marmux_sel = marmux::pc_out;
+      ctrl_out.cmpmux_sel = cmpmux::rs2_out;
+      ctrl_out.aluop = rv32i_types::alu_add;
+      ctrl_out.cmpop = rv32i_types::beq;
+      mem_read = 1'b0;
+      mem_write = 1'b0;
 endfunction
 
 /**
@@ -148,18 +173,18 @@ endfunction
  * SystemVerilog allows for default argument values in a way similar to
  *   C++.
 **/
-function void setALU(alumux::alumux1_sel_t sel1,
-                               alumux::alumux2_sel_t sel2,
-                               logic setop = 1'b0, alu_ops op = alu_add);
+//function void setALU(alumux::alumux1_sel_t sel1,
+//                               alumux::alumux2_sel_t sel2,
+//                               logic setop = 1'b0, alu_ops op = alu_add);
     /* Student code here */
 
 
-    if (setop)
-        ctrl_out.aluop = op; // else default value
-endfunction
+//    if (setop)
+//        ctrl_out.aluop = op; // else default value
+//endfunction
 
-function automatic void setCMP(cmpmux::cmpmux_sel_t sel, branch_funct3_t op);
-endfunction
+//function automatic void setCMP(cmpmux::cmpmux_sel_t sel, branch_funct3_t op);
+//endfunction
 
 /*****************************************************************************/
 
@@ -167,20 +192,58 @@ endfunction
 
 always_comb
 begin : state_actions
-    /* Default output assignments */
-    set_defaults();
-    /* Actions for each state */
+      /* Default output assignments */
+      set_defaults();
+      /* Actions for each state */
+      if(state == fetch1) begin
+            ctrl_out.load_mar = 1'b1;
+            ctrl_out.marmux_sel = marmux::pc_out;
+      end
+
+      else if (state == fetch2) begin
+            ctrl_out.load_mdr = 1'b1;
+            mem_read = 1'b1;
+      end
+
+      else if (state == fetch3) begin
+            ctrl_out.load_ir = 1'b1;
+      end
 end
 
 always_comb
 begin : next_state_logic
-    /* Next state information and conditions (if any)
-     * for transitioning between states */
+      /* Next state information and conditions (if any)
+      * for transitioning between states */
+      if(rst) begin
+            next_state <= fetch1;
+      end else begin
+
+            if(state == fetch1) begin
+                  next_state <= fetch2;
+            end
+
+            else if(state == fetch2) begin
+                  if(mem_resp == 1'b0)
+                        next_state <= fetch2;
+                  else
+                        next_state <= fetch3;
+            end
+
+            else if(state == fetch3) begin
+                  next_state <= decode;
+            end
+
+            else begin
+                  next_state <= fetch1;
+            end
+
+      end
 end
 
 always_ff @(posedge clk)
 begin: next_state_assignment
     /* Assignment of next state on clock edge */
+    state <= next_state;
 end
 
 endmodule : control

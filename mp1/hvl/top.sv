@@ -22,6 +22,22 @@ always @(posedge itf.clk iff commit) order <= order + 1;
 int timeout = 100000000;   // Feel Free to adjust the timeout value
 assign itf.registers = dut.datapath.regfile.data;
 assign itf.halt = dut.load_pc & (dut.datapath.pc_out == dut.datapath.pcmux_out);
+
+
+int state;
+assign state = dut.control.state;
+
+logic [31:0] PC;
+assign PC = dut.datapath.glue.dpath.pc_out;
+
+logic [31:0] IR;
+assign IR = dut.datapath.IR.data;
+
+logic [31:0] MAR;
+assign MAR = dut.mem_address;
+
+logic [31:0] MDR;
+assign MDR = dut.datapath.glue.dpath.mdrreg_out;
 /*****************************************************************************/
 
 /************************** Testbench Instantiation **************************/

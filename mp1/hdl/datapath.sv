@@ -16,6 +16,10 @@ module datapath
 );
 
 /******************* Signals Needed for RVFI Monitor *************************/
+glue_sig glue;
+assign glue.control = ctrl_in;
+assign dpath_out = glue.dpath;
+
 logic load_pc;
 rv32i_word pc_out;
 rv32i_word pcmux_out;
@@ -24,10 +28,6 @@ rv32i_word rs2_out;
 rv32i_word rd;
 rv32i_word regfilemux_out;
 rv32i_word mdrreg_out;
-
-glue_sig glue;
-assign glue.control = ctrl_in;
-assign dpath_out = glue.dpath;
 
 assign load_pc = glue.control.load_pc;
 assign pc_out = glue.dpath.pc_out;
@@ -84,9 +84,9 @@ regfile regfile(
 register MDR(
     .clk  (clk),
     .rst (rst),
-    .load (load_mdr),
+    .load (ctrl_in.load_mdr),
     .in   (mem_rdata),
-    .out  (mdrreg_out)
+    .out  (glue.dpath.mdrreg_out)
 );
 
 register MAR(
@@ -119,7 +119,7 @@ cmp_module cmp(
       .op(glue.control.cmpop),
       .a(glue.dpath.rs1_out),
       .b(glue.dpath.cmp_mux_out),
-      .out(glue.dpath.br_en)
+      .result(glue.dpath.br_en)
 );
 /*****************************************************************************/
 
@@ -158,9 +158,10 @@ always_comb begin : MUXES
     endcase
 
     unique case (glue.control.cmpmux_sel)
-      cmpmux::rs2_out: glue.dpath.cmp_mux_out = glue.dpath.rs1_out;
+      cmpmux::rs2_out: glue.dpath.cmp_mux_out = glue.dpath.rs2_out;
       cmpmux::i_imm: glue.dpath.cmp_mux_out = glue.dpath.i_imm;
       default: `BAD_MUX_SEL;
+      //default: $fatal("Bad mux input, got %d but expected %d", ctrl_in.cmpmux_sel, cmpmux::rs2_out);
     endcase
 
     unique case (glue.control.alumux1_sel)

@@ -7,7 +7,7 @@ import regfilemux::*;
 
 package datapath_types;
 
-typedef struct
+typedef struct packed
 {
       logic load_pc;
       logic load_ir;
@@ -20,12 +20,12 @@ typedef struct
       alumux::alumux2_sel_t alumux2_sel;
       regfilemux::regfilemux_sel_t regfilemux_sel;
       marmux::marmux_sel_t marmux_sel;
-      logic cmpmux_sel;
+      cmpmux::cmpmux_sel_t cmpmux_sel;
       rv32i_types::alu_ops aluop;
       rv32i_types::branch_funct3_t cmpop;
 } control_sig;
 
-typedef struct
+typedef struct packed
 {
       rv32i_types::rv32i_reg rs1;
       rv32i_types::rv32i_reg rs2;
@@ -56,7 +56,7 @@ typedef struct
       logic br_en;
 } datapath_sig;
 
-typedef struct
+typedef struct packed
 {
       control_sig control;
       datapath_sig dpath;

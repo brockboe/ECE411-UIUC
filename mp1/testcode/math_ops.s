@@ -40,8 +40,8 @@ _start:
 
       lui x2, 4
       srli x2, x2, 12
-      sra x1, x1, x2
       srl x1, x1, x2
+      sra x1, x1, x2
 
       lw x1, c
       lw x2, b

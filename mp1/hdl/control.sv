@@ -274,8 +274,32 @@ begin : state_actions
             ctrl_out.load_regfile = 1'b1;
             ctrl_out.load_pc = 1'b1;
             ctrl_out.aluop = rv32i_types::alu_ops ' (dpath_status.funct3);
-            ctrl_out.regfile_sel = regfilemux::alu_out;
             ctrl_out.alumux2_sel = alumux::rs2_out;
+            ctrl_out.regfilemux_sel = regfilemux::alu_out;
+            if((dpath_status.funct3 == rv32i_types::add) && (dpath_status.funct7 == 7'b0000000))
+                  ctrl_out.aluop = rv32i_types::alu_add;
+            else if((dpath_status.funct3 == rv32i_types::add) && (dpath_status.funct7 == 7'b0100000))
+                  ctrl_out.aluop = rv32i_types::alu_sub;
+            else if((dpath_status.funct3 == rv32i_types::sll))
+                  ctrl_out.aluop = rv32i_types::alu_sll;
+            else if((dpath_status.funct3 == rv32i_types::slt)) begin
+                  ctrl_out.cmpop = rv32i_types::blt;
+                  ctrl_out.cmpmux_sel = cmpmux::rs2_out;
+                  ctrl_out.regfilemux_sel = regfilemux::br_en;
+            end
+            else if((dpath_status.funct3 == rv32i_types::sltu)) begin
+                  ctrl_out.cmpop = rv32i_types::bltu;
+                  ctrl_out.cmpmux_sel = cmpmux::rs2_out;
+                  ctrl_out.regfilemux_sel = regfilemux::br_en;
+            end
+            else if((dpath_status.funct3 == rv32i_types::axor))
+                  ctrl_out.aluop = rv32i_types::alu_xor;
+            else if((dpath_status.funct3 == rv32i_types::sr) && (dpath_status.funct7 == 7'b0000000))
+                  ctrl_out.aluop = rv32i_types::alu_srl;
+            else if((dpath_status.funct3 == rv32i_types::sr) && (dpath_status.funct7 == 7'b0100000))
+                  ctrl_out.aluop = rv32i_types::alu_sra;
+            else
+                  ctrl_out.aluop = rv32i_types::alu_ops ' (dpath_status.funct3);
       end
 
       else if (state == br) begin

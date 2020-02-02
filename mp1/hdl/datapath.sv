@@ -3,6 +3,30 @@
 import rv32i_types::*;
 import datapath_types::*;
 
+`define BAD_MUX_SEL_CMP $fatal("%0t %s %0d: Illegal cmpop select. Got: %d", $time, `__FILE__, `__LINE__, op)
+
+module cmp_module(
+      input branch_funct3_t op,
+      input rv32i_word a,
+      input rv32i_word b,
+      output logic result
+);
+
+always_comb begin
+      unique case (op)
+            rv32i_types::beq: result = (a == b);
+            rv32i_types::bne: result = (a != b);
+            rv32i_types::blt: result = ($signed(a) < $signed(b));
+            rv32i_types::bge: result = ($signed(a) >= $signed(b));
+            rv32i_types::bltu: result = (a < b);
+            rv32i_types::bgeu: result = (a >= b);
+            default: `BAD_MUX_SEL_CMP;
+      endcase
+end
+
+endmodule
+
+
 module datapath
 (
     input clk,
@@ -100,7 +124,7 @@ register MAR(
 register mem_data_out(
       .clk(clk),
       .rst(rst),
-      .load(1'b1),
+      .load(glue.control.load_data_out),
       .in(glue.dpath.rs2_out),
       .out(mem_wdata)
 );
@@ -140,7 +164,7 @@ always_comb begin : MUXES
 
     unique case (glue.control.regfilemux_sel)
       regfilemux::alu_out: glue.dpath.regfilemux_out = glue.dpath.alu_out;
-      regfilemux::br_en: glue.dpath.regfilemux_out =  glue.dpath.br_en;
+      regfilemux::br_en: glue.dpath.regfilemux_out =  {31'd0, glue.dpath.br_en};
       regfilemux::u_imm: glue.dpath.regfilemux_out = glue.dpath.u_imm;
       regfilemux::lw: glue.dpath.regfilemux_out = glue.dpath.mdrreg_out;
       regfilemux::pc_plus4: glue.dpath.regfilemux_out = glue.dpath.pc_out + 4;

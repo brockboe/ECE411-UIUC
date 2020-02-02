@@ -108,10 +108,12 @@ enum int unsigned {
     calc_addr     = 6,
     ldr1           = 7,
     ldr2           = 8,
-    st1           = 9,
-    st2           = 10,
+    str1           = 9,
+    str2           = 10,
     auipc         = 11,
-    br            = 12
+    br            = 12,
+    calc_addr_sw  = 13,
+    reg_op        = 14
 } state, next_state;
 
 /************************* Function Definitions *******************************/
@@ -241,9 +243,65 @@ begin : state_actions
       end
 
       else if (state == imm) begin
+            if (dpath_status.funct3 == rv32i_types::slt) begin
+                  ctrl_out.load_regfile = 1'b1;
+                  ctrl_out.load_pc = 1'b1;
+                  ctrl_out.cmpop = rv32i_types::blt;
+                  ctrl_out.cmpmux_sel = cmpmux::i_imm;
+                  ctrl_out.regfilemux_sel = regfilemux::br_en;
+            end
+            else if (dpath_status.funct3 == rv32i_types::sltu) begin
+                  ctrl_out.load_regfile = 1'b1;
+                  ctrl_out.load_pc = 1'b1;
+                  ctrl_out.cmpop = rv32i_types::bltu;
+                  ctrl_out.cmpmux_sel = cmpmux::i_imm;
+                  ctrl_out.regfilemux_sel = regfilemux::br_en;
+            end
+            else if (dpath_status.funct3 == rv32i_types::sr) begin
+                  ctrl_out.load_regfile = 1'b1;
+                  ctrl_out.load_pc = 1'b1;
+                  ctrl_out.aluop = rv32i_types::alu_sra;
+                  ctrl_out.regfilemux_sel = regfilemux::regfilemux_sel_t ' (dpath_status.alu_out);
+            end
+            else begin
+                  ctrl_out.load_regfile = 1'b1;
+                  ctrl_out.load_pc = 1'b1;
+                  ctrl_out.aluop = alu_ops ' (dpath_status.funct3);
+            end
+      end
+
+      else if (state == reg_op) begin
             ctrl_out.load_regfile = 1'b1;
             ctrl_out.load_pc = 1'b1;
-            ctrl_out.aluop = alu_ops ' (dpath_status.funct3);
+            ctrl_out.aluop = rv32i_types::alu_ops ' (dpath_status.funct3);
+            ctrl_out.regfile_sel = regfilemux::alu_out;
+            ctrl_out.alumux2_sel = alumux::rs2_out;
+      end
+
+      else if (state == br) begin
+            ctrl_out.pcmux_sel = pcmux::pcmux_sel_t ' (dpath_status.br_en);
+            ctrl_out.load_pc = 1'b1;
+            ctrl_out.alumux1_sel = alumux::pc_out;
+            ctrl_out.alumux2_sel = alumux::b_imm;
+            ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.cmpop = rv32i_types::branch_funct3_t ' (dpath_status.funct3);
+      end
+
+      else if (state == calc_addr_sw) begin
+            ctrl_out.alumux2_sel = alumux::s_imm;
+            ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.load_mar = 1'b1;
+            ctrl_out.load_data_out = 1'b1;
+            ctrl_out.marmux_sel = marmux::alu_out;
+      end
+
+      else if (state == str1) begin
+            mem_read = 1'b0;
+            mem_write = 1'b1;
+      end
+
+      else if (state == str2) begin
+            ctrl_out.load_pc = 1'b1;
       end
 end
 
@@ -290,6 +348,12 @@ begin : next_state_logic
                         next_state <= lui;
                   else if(dpath_status.opcode == rv32i_types::op_imm)
                         next_state <= imm;
+                  else if(dpath_status.opcode == rv32i_types::op_br)
+                        next_state <= br;
+                  else if(dpath_status.opcode == rv32i_types::op_store)
+                        next_state <= calc_addr_sw;
+                  else if(dpath_status.opcode == rv32i_types::op_reg)
+                        next_state <= reg_op;
                   else
                         next_state <= fetch1;
             end
@@ -297,7 +361,26 @@ begin : next_state_logic
             else if(state == lui)
                   next_state <= fetch1;
 
+            else if(state == reg_op)
+                  next_state <= fetch1;
+
             else if(state == auipc)
+                  next_state <= fetch1;
+
+            else if(state == br)
+                  next_state <= fetch1;
+
+            else if(state == calc_addr_sw)
+                  next_state <= str1;
+
+            else if(state == str1) begin
+                  if(mem_resp == 1'b0)
+                        next_state <= str1;
+                  else
+                        next_state <= str2;
+            end
+
+            else if(state == str2)
                   next_state <= fetch1;
 
             else

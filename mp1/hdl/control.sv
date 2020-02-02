@@ -261,7 +261,7 @@ begin : state_actions
                   ctrl_out.load_regfile = 1'b1;
                   ctrl_out.load_pc = 1'b1;
                   ctrl_out.aluop = rv32i_types::alu_sra;
-                  ctrl_out.regfilemux_sel = regfilemux::regfilemux_sel_t ' (dpath_status.alu_out);
+                  ctrl_out.regfilemux_sel = regfilemux::regfilemux_sel_t ' (dpath_status.funct3);
             end
             else begin
                   ctrl_out.load_regfile = 1'b1;

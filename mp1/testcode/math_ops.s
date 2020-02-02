@@ -22,9 +22,9 @@ _start:
 
       # Test register-register instructions
       lui x1, 1
-      srli x1, 12
+      srli x1, x1, 12
       lui x2, 2
-      srli x2, 12
+      srli x2, x2, 12
       add x1, x1, x2
       sub x1, x1, x2
 
@@ -34,12 +34,12 @@ _start:
       slt x3, x2, x1
       lw x1, a
       lw x2, b
-      lw x3, 0
+      lw x3, zero
       sltu x3, x1, x2
       sltu x3, x2, x1
 
       lui x2, 4
-      srli x2, 12
+      srli x2, x2, 12
       sra x1, x1, x2
       srl x1, x1, x2
 

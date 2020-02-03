@@ -33,6 +33,27 @@ cmpmux::cmpmux_sel_t cmpmux_sel;
 datapath_sig dpath_connector;
 control_sig ctrl_connector;
 
+
+rv32i_word pc_out;
+rv32i_word pcmux_out;
+rv32i_word rs1_out;
+rv32i_word rs2_out;
+rv32i_word rd;
+rv32i_word regfilemux_out;
+rv32i_word mdrreg_out;
+
+assign load_pc = ctrl_connector.load_pc;
+assign load_regfile = ctrl_connector.load_regfile;
+assign pc_out = dpath_connector.pc_out;
+assign pcmux_out = dpath_connector.pcmux_out;
+assign rs1_out = dpath_connector.rs1_out;
+assign rs2_out = dpath_connector.rs2_out;
+assign rd = dpath_connector.rd;
+assign regfilemux_out = dpath_connector.regfilemux_out;
+assign mdrreg_out = dpath_connector.mdrreg_out;
+
+
+
 // Keep control named `control` for RVFI Monitor
 control control(
       .clk(clk),

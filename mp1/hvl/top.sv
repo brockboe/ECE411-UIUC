@@ -1,6 +1,6 @@
 `define SRC 0
 `define RAND 1
-`define TESTBENCH `SRC
+`define TESTBENCH `RAND
 
 module mp1_tb;
 

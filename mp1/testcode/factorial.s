@@ -4,7 +4,7 @@ factorial.s:
 .globl _start
 
 _start:
-      lw x1, input
+      lw x1, a
       la x4, multiplier
       sw x1, 0(x4)
 
@@ -12,7 +12,7 @@ _start:
       la x4, multiplicand
       sw x1, 0(x4)
       add x1, x1, -1
-      la x4, input
+      la x4, a
       sw x1, 0(x4)
 
       beq x1, x1, mult_start
@@ -23,12 +23,12 @@ fact_loop:
       la x4, result
       sw x1, 0(x4)
 
-      lw x1, input
+      lw x1, a
       xor x4, x4, x4
       add x4, x4, 1
       beq x1, x4, done
 
-      lw x1, input
+      lw x1, a
       lw x2, result
       la x3, multiplier
       sw x1, 0(x3)
@@ -36,7 +36,7 @@ fact_loop:
       sw x2, 0(x3)
 
       add x1, x1, -1
-      la x3, input
+      la x3, a
       sw x1, 0(x3)
       beq x1, x1, mult_start
 
@@ -63,7 +63,7 @@ done_loop:
 
 .section .rodata
 
-input:            .word 0x00000005
+a:                .word 0x0000000a
 multiplier:       .word 0x00000000
 multiplicand:     .word 0x00000000
 product:          .word 0x00000000

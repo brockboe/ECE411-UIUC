@@ -41,6 +41,7 @@ control control(
       .mem_resp(mem_resp),
       .mem_read(mem_read),
       .mem_write(mem_write),
+      .mem_byte_enable(mem_byte_enable),
       .ctrl_out(ctrl_connector)
 );
 

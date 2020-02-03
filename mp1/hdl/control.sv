@@ -17,7 +17,8 @@ module control
 
     output logic mem_read,
     output logic mem_write,
-    output control_sig ctrl_out
+    output control_sig ctrl_out,
+    output logic [3:0] mem_byte_enable
     /*
     input rv32i_opcode opcode,
     input logic [2:0] funct3,
@@ -149,6 +150,7 @@ function void set_defaults();
       ctrl_out.cmpmux_sel = cmpmux::rs2_out;
       ctrl_out.aluop = rv32i_types::alu_add;
       ctrl_out.cmpop = rv32i_types::beq;
+      mem_byte_enable = 4'b0000;
       mem_read = 1'b0;
       mem_write = 1'b0;
 endfunction
@@ -323,6 +325,7 @@ begin : state_actions
       else if (state == str1) begin
             mem_read = 1'b0;
             mem_write = 1'b1;
+            mem_byte_enable = 4'b1111;
       end
 
       else if (state == str2) begin

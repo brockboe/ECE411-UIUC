@@ -3,10 +3,40 @@ factorial.s:
 .section .text
 .globl _start
 
+
+# Algorithm Explanation
+#
+# multiply(multiplier, multiplicand):
+#     product = 0
+#     while(multiplier > 0):
+#           product = product + multiplicand
+#           multiplier = multiplier - 1
+#     [store product in memory]
+#
+#
+# factorial(a):
+#     multiplier = a
+#     multiplicand = a - 1
+#     input = a - 2
+#     multiply(multiplier, multiplicand)
+#     result = product
+#
+#     while(input > 1):
+#           multiplier = input
+#           multiplicand = result
+#           multiply(multiplier, multiplicand)
+#           result = product
+#           input = input - 1
+#
+#     [put result into register x1]
+#     [loop forever]
+
+
 _start:
       # note: in the comments the number
       # who's factorial is being computed
-      # is often called the "input"
+      # is called "a", but referred to as
+      # "input" in the comments.
       #
       # store our input into argument 1
       # of the multiplication program

@@ -78,8 +78,8 @@ begin : trap_check
         op_load: begin
             case (load_funct3)
                 rv32i_types::lw: rmask = 4'b1111;
-                //lh, lhu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
-                //lb, lbu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                rv32i_types::lh, rv32i_types::lhu: rmask = 4'b0011 /* Modify for MP1 Final */ ;
+                rv32i_types::lb, rv32i_types::lbu: rmask = 4'b0001 /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -87,8 +87,8 @@ begin : trap_check
         op_store: begin
             case (store_funct3)
                 rv32i_types::sw: wmask = 4'b1111;
-                //sh: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
-                //sb: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                rv32i_types::sh: wmask = 4'b0011 /* Modify for MP1 Final */ ;
+                rv32i_types::sb: wmask = 4'b0001 /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -233,7 +233,14 @@ begin : state_actions
       end
 
       else if (state == ldr2) begin
-            ctrl_out.regfilemux_sel = regfilemux::lw;
+            unique case(dpath_status.funct3)
+                  rv32i_types::lb: ctrl_out.regfilemux_sel = regfilemux::lb;
+                  rv32i_types::lh: ctrl_out.regfilemux_sel = regfilemux::lh;
+                  rv32i_types::lw: ctrl_out.regfilemux_sel = regfilemux::lw;
+                  rv32i_types::lbu: ctrl_out.regfilemux_sel = regfilemux::lbu;
+                  rv32i_types::lhu: ctrl_out.regfilemux_sel = regfilemux::lhu;
+                  default: ctrl_out.regfilemux_sel = regfilemux::alu_out;
+            endcase
             ctrl_out.load_regfile = 1'b1;
             ctrl_out.load_pc = 1'b1;
       end
@@ -262,7 +269,12 @@ begin : state_actions
             else if (dpath_status.funct3 == rv32i_types::sr) begin
                   ctrl_out.load_regfile = 1'b1;
                   ctrl_out.load_pc = 1'b1;
-                  ctrl_out.aluop = rv32i_types::alu_sra;
+
+                  if (dpath_status.funct7 == 7'b0100000)
+                        ctrl_out.aluop = rv32i_types::alu_sra;
+                  else
+                        ctrl_out.aluop = rv32i_types::alu_srl;
+
                   ctrl_out.regfilemux_sel = regfilemux::alu_out;
             end
             else begin
@@ -325,7 +337,13 @@ begin : state_actions
       else if (state == str1) begin
             mem_read = 1'b0;
             mem_write = 1'b1;
-            mem_byte_enable = 4'b1111;
+            //mem_byte_enable = 4'b1111;
+            unique case (dpath_status.funct3)
+                  rv32i_types::sb: mem_byte_enable = 4'b0001;
+                  rv32i_types::sh: mem_byte_enable = 4'b0011;
+                  rv32i_types::sw: mem_byte_enable = 4'b1111;
+                  default: mem_byte_enable = 4'b1111;
+            endcase
       end
 
       else if (state == str2) begin

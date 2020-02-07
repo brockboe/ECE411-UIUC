@@ -29,6 +29,6 @@ _start:
 done:
       beq x0, x0, done
 
-byte:       .byte 0x8A
-half:       .half 0x800B
+byte:       .word 0x0000008A
+half:       .word 0x0000800B
 word:       .word 0x800000CD

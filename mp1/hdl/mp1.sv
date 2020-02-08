@@ -53,7 +53,6 @@ assign regfilemux_out = dpath_connector.regfilemux_out;
 assign mdrreg_out = dpath_connector.mdrreg_out;
 
 
-
 // Keep control named `control` for RVFI Monitor
 control control(
       .clk(clk),

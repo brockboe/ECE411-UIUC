@@ -167,7 +167,7 @@ always_comb begin : MUXES
       regfilemux::br_en: glue.dpath.regfilemux_out =  {31'd0, glue.dpath.br_en};
       regfilemux::u_imm: glue.dpath.regfilemux_out = glue.dpath.u_imm;
       regfilemux::lw: glue.dpath.regfilemux_out = glue.dpath.mdrreg_out;
-      regfilemux::pc_plus4: glue.dpath.regfilemux_out = glue.dpath.pc_out + 4;
+      regfilemux::pc_plus4: glue.dpath.regfilemux_out = glue.dpath.pc_out + 32'd4;
       regfilemux::lb: glue.dpath.regfilemux_out = {{24{glue.dpath.mdrreg_out[7]}}, glue.dpath.mdrreg_out[7:0]};
       regfilemux::lbu: glue.dpath.regfilemux_out = {24'd0, glue.dpath.mdrreg_out[7:0]};
       regfilemux::lh: glue.dpath.regfilemux_out = {{16{glue.dpath.mdrreg_out[15]}}, glue.dpath.mdrreg_out[15:0]};

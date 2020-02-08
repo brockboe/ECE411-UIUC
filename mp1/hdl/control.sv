@@ -220,9 +220,12 @@ begin : state_actions
       else if (state == auipc) begin
             ctrl_out.alumux1_sel = alumux::pc_out;
             ctrl_out.alumux2_sel = alumux::u_imm;
-            ctrl_out.load_regfile = 1'b1;
-            ctrl_out.load_pc = 1'b1;
+            ctrl_out.regfilemux_sel = regfilemux::alu_out;
             ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.load_regfile = 1'b1;
+
+            ctrl_out.pcmux_sel = pcmux::pc_plus4;
+            ctrl_out.load_pc = 1'b1;
       end
 
       else if (state == calc_addr) begin
@@ -355,10 +358,17 @@ begin : state_actions
       end
 
       else if (state == jal) begin
-            ctrl_out.load_regfile = 1'b1;
             ctrl_out.regfilemux_sel = regfilemux::pc_plus4;
+            ctrl_out.load_regfile = 1'b1;
+
+            ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.alumux1_sel = alumux::pc_out;
+            ctrl_out.alumux2_sel = alumux::j_imm;
+            ctrl_out.pcmux_sel = pcmux::alu_out;
+            ctrl_out.load_pc = 1'b1;
       end
 
+      /*
       else if (state == jal2) begin
             ctrl_out.aluop = rv32i_types::alu_add;
             ctrl_out.alumux1_sel = alumux::pc_out;
@@ -366,12 +376,20 @@ begin : state_actions
             ctrl_out.load_pc = 1'b1;
             ctrl_out.pcmux_sel = pcmux::alu_out;
       end
+      */
 
       else if (state == jalr) begin
-            ctrl_out.load_regfile = 1'b1;
             ctrl_out.regfilemux_sel = regfilemux::pc_plus4;
+            ctrl_out.load_regfile = 1'b1;
+
+            ctrl_out.aluop = rv32i_types::alu_add;
+            ctrl_out.alumux1_sel = alumux::rs1_out;
+            ctrl_out.alumux2_sel = alumux::i_imm;
+            ctrl_out.pcmux_sel = pcmux::alu_out;
+            ctrl_out.load_pc = 1'b1;
       end
 
+      /*
       else if (state == jalr2) begin
             ctrl_out.aluop = rv32i_types::alu_add;
             ctrl_out.alumux1_sel = alumux::rs1_out;
@@ -379,6 +397,7 @@ begin : state_actions
             ctrl_out.load_pc = 1'b1;
             ctrl_out.pcmux_sel = pcmux::alu_out;
       end
+      */
 end
 
 always_comb
@@ -451,16 +470,16 @@ begin : next_state_logic
             end
 
             else if(state == jal)
-                  next_state <= jal2;
-
-            else if(state == jal2)
                   next_state <= fetch1;
+
+            //else if(state == jal2)
+            //      next_state <= fetch1;
 
             else if(state == jalr)
-                  next_state <= jalr2;
-
-            else if(state == jalr2)
                   next_state <= fetch1;
+
+            //else if(state == jalr2)
+            //      next_state <= fetch1;
 
             else if(state == lui)
                   next_state <= fetch1;

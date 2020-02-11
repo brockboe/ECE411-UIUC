@@ -197,23 +197,6 @@ endfunction
 function void loadMDR();
 endfunction
 
-/**
- * SystemVerilog allows for default argument values in a way similar to
- *   C++.
-**/
-//function void setALU(alumux::alumux1_sel_t sel1,
-//                               alumux::alumux2_sel_t sel2,
-//                               logic setop = 1'b0, alu_ops op = alu_add);
-    /* Student code here */
-
-
-//    if (setop)
-//        ctrl_out.aluop = op; // else default value
-//endfunction
-
-//function automatic void setCMP(cmpmux::cmpmux_sel_t sel, branch_funct3_t op);
-//endfunction
-
 /*****************************************************************************/
 
     /* Remember to deal with rst signal */
@@ -372,7 +355,7 @@ begin : state_actions
       else if (state == str1) begin
             mem_read = 1'b0;
             mem_write = 1'b1;
-            //mem_byte_enable = 4'b1111;
+
             unique case (dpath_status.funct3)
                   rv32i_types::sb: mem_byte_enable = byte_unaligned;
                   rv32i_types::sh: mem_byte_enable = half_unaligned;
@@ -404,16 +387,6 @@ begin : state_actions
             ctrl_out.load_pc = 1'b1;
       end
 
-      /*
-      else if (state == jal2) begin
-            ctrl_out.aluop = rv32i_types::alu_add;
-            ctrl_out.alumux1_sel = alumux::pc_out;
-            ctrl_out.alumux2_sel = alumux::j_imm;
-            ctrl_out.load_pc = 1'b1;
-            ctrl_out.pcmux_sel = pcmux::alu_out;
-      end
-      */
-
       else if (state == jalr) begin
             ctrl_out.regfilemux_sel = regfilemux::pc_plus4;
             ctrl_out.load_regfile = 1'b1;
@@ -425,15 +398,6 @@ begin : state_actions
             ctrl_out.load_pc = 1'b1;
       end
 
-      /*
-      else if (state == jalr2) begin
-            ctrl_out.aluop = rv32i_types::alu_add;
-            ctrl_out.alumux1_sel = alumux::rs1_out;
-            ctrl_out.alumux2_sel = alumux::i_imm;
-            ctrl_out.load_pc = 1'b1;
-            ctrl_out.pcmux_sel = pcmux::alu_out;
-      end
-      */
 end
 
 always_comb
@@ -484,38 +448,13 @@ begin : next_state_logic
                         rv32i_types::op_jalr: next_state <= jalr;
                         default: next_state <= fetch1;
                   endcase
-
-                  /*
-                  if(dpath_status.opcode == rv32i_types::op_auipc)
-                        next_state <= auipc;
-                  else if(dpath_status.opcode == rv32i_types::op_load)
-                        next_state <= calc_addr;
-                  else if(dpath_status.opcode == rv32i_types::op_lui)
-                        next_state <= lui;
-                  else if(dpath_status.opcode == rv32i_types::op_imm)
-                        next_state <= imm;
-                  else if(dpath_status.opcode == rv32i_types::op_br)
-                        next_state <= br;
-                  else if(dpath_status.opcode == rv32i_types::op_store)
-                        next_state <= calc_addr_sw;
-                  else if(dpath_status.opcode == rv32i_types::op_reg)
-                        next_state <= reg_op;
-                  else
-                        next_state <= fetch1;
-                  */
             end
 
             else if(state == jal)
                   next_state <= fetch1;
 
-            //else if(state == jal2)
-            //      next_state <= fetch1;
-
             else if(state == jalr)
                   next_state <= fetch1;
-
-            //else if(state == jalr2)
-            //      next_state <= fetch1;
 
             else if(state == lui)
                   next_state <= fetch1;

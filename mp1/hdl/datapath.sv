@@ -66,6 +66,9 @@ assign mdrreg_out = glue.dpath.mdrreg_out;
 
 
 /***************************** Registers *************************************/
+
+logic [31:0] mem_write;
+
 // Keep Instruction register named `IR` for RVFI Monitor
 ir IR(
       .clk(clk),
@@ -117,7 +120,7 @@ register MAR(
       .clk(clk),
       .rst(rst),
       .load(glue.control.load_mar),
-      .in(glue.dpath.marmux_out),
+      .in({glue.dpath.marmux_out[31:2], 2'd0}),
       .out(mem_address)
 );
 
@@ -125,7 +128,7 @@ register mem_data_out(
       .clk(clk),
       .rst(rst),
       .load(glue.control.load_data_out),
-      .in(glue.dpath.rs2_out),
+      .in(mem_write),
       .out(mem_wdata)
 );
 
@@ -148,6 +151,11 @@ cmp_module cmp(
 /*****************************************************************************/
 
 /******************************** Muxes **************************************/
+logic [7:0] b_rwdata;
+logic [15:0] h_rwdata;
+logic [31:0] b_write;
+logic [31:0] h_write;
+
 always_comb begin : MUXES
     // We provide one (incomplete) example of a mux instantiated using
     // a case statement.  Using enumerated types rather than bit vectors
@@ -158,8 +166,44 @@ always_comb begin : MUXES
     unique case (glue.control.pcmux_sel)
         pcmux::pc_plus4: glue.dpath.pcmux_out = glue.dpath.pc_out + 4;
         pcmux::alu_out:  glue.dpath.pcmux_out = glue.dpath.alu_out;
-        pcmux::alu_mod2:  glue.dpath.pcmux_out = {31'd0, glue.dpath.alu_out[0]};
+        pcmux::alu_mod2:  glue.dpath.pcmux_out = {glue.dpath.alu_out[31:2], 2'd0};
         default: `BAD_MUX_SEL;
+    endcase
+
+    unique case(glue.control.byte_mask)
+      4'b0001: b_rwdata = glue.dpath.mdrreg_out[7:0];
+      4'b0010: b_rwdata = glue.dpath.mdrreg_out[15:8];
+      4'b0100: b_rwdata = glue.dpath.mdrreg_out[23:16];
+      4'b1000: b_rwdata = glue.dpath.mdrreg_out[31:24];
+      default: b_rwdata = 8'd0;
+    endcase
+
+    unique case(glue.control.half_mask)
+      4'b0011: h_rwdata = glue.dpath.mdrreg_out[15:0];
+      4'b0110: h_rwdata = glue.dpath.mdrreg_out[23:8];
+      4'b1100: h_rwdata = glue.dpath.mdrreg_out[31:16];
+      default: h_rwdata = 16'd0;
+    endcase
+
+    unique case (glue.control.byte_mask)
+      4'b0001: b_write = {24'd0, glue.dpath.rs2_out[7:0]};
+      4'b0010: b_write = {16'd0, glue.dpath.rs2_out[7:0], 8'd0};
+      4'b0100: b_write = {8'd0, glue.dpath.rs2_out[7:0], 8'd0};
+      4'b1000: b_write = {glue.dpath.rs2_out[7:0], 24'd0};
+      default: b_write = glue.dpath.rs2_out;
+    endcase
+
+    unique case (glue.control.half_mask)
+      4'b0011: h_write = {16'd0, glue.dpath.rs2_out[15:0]};
+      4'b0110: h_write = {8'd0, glue.dpath.rs2_out[15:0], 8'd0};
+      4'b1100: h_write = {glue.dpath.rs2_out[15:0], 16'd0};
+      default: h_write = glue.dpath.rs2_out;
+    endcase
+
+    unique case (glue.dpath.funct3)
+      rv32i_types::sb: mem_write = b_write;
+      rv32i_types::sh: mem_write = h_write;
+      default: mem_write = glue.dpath.rs2_out;
     endcase
 
     unique case (glue.control.regfilemux_sel)
@@ -168,10 +212,10 @@ always_comb begin : MUXES
       regfilemux::u_imm: glue.dpath.regfilemux_out = glue.dpath.u_imm;
       regfilemux::lw: glue.dpath.regfilemux_out = glue.dpath.mdrreg_out;
       regfilemux::pc_plus4: glue.dpath.regfilemux_out = glue.dpath.pc_out + 32'd4;
-      regfilemux::lb: glue.dpath.regfilemux_out = {{24{glue.dpath.mdrreg_out[7]}}, glue.dpath.mdrreg_out[7:0]};
-      regfilemux::lbu: glue.dpath.regfilemux_out = {24'd0, glue.dpath.mdrreg_out[7:0]};
-      regfilemux::lh: glue.dpath.regfilemux_out = {{16{glue.dpath.mdrreg_out[15]}}, glue.dpath.mdrreg_out[15:0]};
-      regfilemux::lhu: glue.dpath.regfilemux_out = {24'd0, glue.dpath.mdrreg_out[15:0]};
+      regfilemux::lb: glue.dpath.regfilemux_out = {{24{b_rwdata[7]}}, b_rwdata};
+      regfilemux::lbu: glue.dpath.regfilemux_out = {24'd0, b_rwdata};
+      regfilemux::lh: glue.dpath.regfilemux_out = {{16{h_rwdata[15]}}, h_rwdata};
+      regfilemux::lhu: glue.dpath.regfilemux_out = {16'd0, h_rwdata};
       default: `BAD_MUX_SEL;
     endcase
 

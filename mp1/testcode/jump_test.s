@@ -9,7 +9,7 @@ _start:
 
 ld_reg:
       lw x5, testval
-      jalr x2, 0(x1)
+      jalr x2, 1(x1)
 
 done:
       beq x0, x0, done

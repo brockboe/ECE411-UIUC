@@ -25,8 +25,6 @@ module control
 logic trap;
 logic [4:0] rs1_addr, rs2_addr;
 logic [3:0] rmask, wmask;
-logic [3:0] half_unaligned;
-logic [3:0] byte_unaligned;
 
 branch_funct3_t branch_funct3;
 store_funct3_t store_funct3;
@@ -59,8 +57,8 @@ begin : trap_check
         op_load: begin
             case (load_funct3)
                 rv32i_types::lw: rmask = 4'b1111;
-                rv32i_types::lh, rv32i_types::lhu: rmask = half_unaligned /* Modify for MP1 Final */ ;
-                rv32i_types::lb, rv32i_types::lbu: rmask = byte_unaligned /* Modify for MP1 Final */ ;
+                rv32i_types::lh, rv32i_types::lhu: rmask = (4'b0011 << dpath_status.marmux_out[1:0]) /* Modify for MP1 Final */ ;
+                rv32i_types::lb, rv32i_types::lbu: rmask = (4'b0001 << dpath_status.marmux_out[1:0]) /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -68,8 +66,8 @@ begin : trap_check
         op_store: begin
             case (store_funct3)
                 rv32i_types::sw: wmask = 4'b1111;
-                rv32i_types::sh: wmask = half_unaligned /* Modify for MP1 Final */ ;
-                rv32i_types::sb: wmask = byte_unaligned /* Modify for MP1 Final */ ;
+                rv32i_types::sh: wmask = (4'b0011 << dpath_status.marmux_out[1:0]) /* Modify for MP1 Final */ ;
+                rv32i_types::sb: wmask = (4'b0001 << dpath_status.marmux_out[1:0]) /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -78,24 +76,6 @@ begin : trap_check
     endcase
 end
 /*****************************************************************************/
-always_comb begin
-      unique case(dpath_status.marmux_out[1:0])
-            2'b00: half_unaligned = 4'b0011;
-            2'b01: half_unaligned = 4'b0110;
-            2'b10: half_unaligned = 4'b1100;
-            2'b11: half_unaligned = 4'b1001;
-      endcase
-
-      unique case(dpath_status.marmux_out[1:0])
-            2'b00: byte_unaligned = 4'b0001;
-            2'b01: byte_unaligned = 4'b0010;
-            2'b10: byte_unaligned = 4'b0100;
-            2'b11: byte_unaligned = 4'b1000;
-      endcase
-end
-
-assign ctrl_out.byte_mask = byte_unaligned;
-assign ctrl_out.half_mask = half_unaligned;
 
 enum int unsigned {
     /* List of states */
@@ -335,12 +315,12 @@ begin : state_actions
             mem_read = 1'b0;
             mem_write = 1'b1;
 
-            unique case (dpath_status.funct3)
-                  rv32i_types::sb: mem_byte_enable = byte_unaligned;
-                  rv32i_types::sh: mem_byte_enable = half_unaligned;
-                  rv32i_types::sw: mem_byte_enable = 4'b1111;
-                  default: mem_byte_enable = 4'b1111;
-            endcase
+            if(dpath_status.funct3 == rv32i_types::sb)
+                  mem_byte_enable = (4'b0001 << dpath_status.mem_address[1:0]);
+            else if(dpath_status.funct3 == rv32i_types::sh)
+                  mem_byte_enable = (4'b0011 << dpath_status.mem_address[1:0]);
+            else
+                  mem_byte_enable = 4'b1111;
 
             ctrl_out.alumux2_sel = alumux::s_imm;
             ctrl_out.aluop = rv32i_types::alu_add;

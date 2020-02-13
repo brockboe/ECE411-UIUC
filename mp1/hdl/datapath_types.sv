@@ -15,10 +15,6 @@ typedef struct packed
       logic load_mar;
       logic load_mdr;
       logic load_data_out;
-      logic [3:0] byte_mask;
-      logic [3:0] half_mask;
-      logic [3:0] byte_write_mask;
-      logic [3:0] half_write_mask;
       pcmux::pcmux_sel_t pcmux_sel;
       alumux::alumux1_sel_t alumux1_sel;
       alumux::alumux2_sel_t alumux2_sel;
@@ -58,6 +54,8 @@ typedef struct packed
       logic [2:0] funct3;
       logic [6:0] funct7;
       logic br_en;
+
+      logic [3:0] mem_byte_enable;
 } datapath_sig;
 
 typedef struct packed

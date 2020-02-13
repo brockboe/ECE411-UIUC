@@ -11,6 +11,14 @@ _start:
       lhu x1, half
       lw x1, word
 
+      lb x1, byte
+      lb x1, bytetwo
+      lb x1, bytethree
+
+      lh x1, half
+      lh x1, halftwo
+      lhu x1, halftwo
+
       la x2, byte
       addi x1, x0, 127
       sb x1, 0(x2)
@@ -29,7 +37,10 @@ _start:
 done:
       beq x0, x0, done
 
-misalign:   .byte 0xFF
+misalign:   .byte 0x77
 byte:       .byte 0x8A
+bytetwo:    .byte 0x97
+bytethree:  .byte 0x31
 half:       .half 0x800B
+halftwo:    .half 0xB00B
 word:       .word 0x800000CD

@@ -18,4 +18,9 @@ cpu cpu(.*);
 // Keep cache named `cache` for RVFI Monitor
 cache cache(.*);
 
+// From MP0
+cacheline_adaptor cacheline_adaptor
+(
+);
+
 endmodule : mp2

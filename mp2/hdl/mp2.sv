@@ -3,6 +3,7 @@ import rv32i_types::*;
 module mp2
 (
     input clk,
+    input rst,
     input pmem_resp,
     input [63:0] pmem_rdata,
     output logic pmem_read,
@@ -17,5 +18,10 @@ cpu cpu(.*);
 
 // Keep cache named `cache` for RVFI Monitor
 cache cache(.*);
+
+// From MP0
+cacheline_adaptor cacheline_adaptor
+(
+);
 
 endmodule : mp2

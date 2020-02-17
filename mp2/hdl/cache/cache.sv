@@ -21,9 +21,4 @@ bus_adapter bus_adapter
 (
 );
 
-// From MP0
-cacheline_adaptor cacheline_adaptor
-(
-);
-
 endmodule : cache

@@ -3,6 +3,7 @@ import rv32i_types::*; /* Import types defined in rv32i_types.sv */
 module control
 (
     input clk,
+    input rst,
     input rv32i_opcode opcode,
     input logic [2:0] funct3,
     input logic [6:0] funct7,
@@ -24,7 +25,7 @@ module control
     output logic load_data_out
 );
 
-/****************** USED BY RVFIMON --- DO NOT MODIFY ************************/
+/***************** USED BY RVFIMON --- ONLY MODIFY WHEN TOLD *****************/
 logic trap;
 logic [4:0] rs1_addr, rs2_addr;
 logic [3:0] rmask, wmask;
@@ -42,7 +43,7 @@ assign rs1_addr = rs1;
 assign rs2_addr = rs2;
 
 always_comb
-begin : trap_check_do_not_modify
+begin : trap_check
     trap = 0;
     rmask = '0;
     wmask = '0;
@@ -60,8 +61,8 @@ begin : trap_check_do_not_modify
         op_load: begin
             case (load_funct3)
                 lw: rmask = 4'b1111;
-                lh, lhu: rmask = 4'b0011;
-                lb, lbu: rmask = 4'b0001;
+                lh, lhu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                lb, lbu: rmask = 4'bXXXX /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -69,8 +70,8 @@ begin : trap_check_do_not_modify
         op_store: begin
             case (store_funct3)
                 sw: wmask = 4'b1111;
-                sh: wmask = 4'b0011;
-                sb: wmask = 4'b0001;
+                sh: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
+                sb: wmask = 4'bXXXX /* Modify for MP1 Final */ ;
                 default: trap = 1;
             endcase
         end
@@ -142,6 +143,7 @@ endfunction
 
 /*****************************************************************************/
 
+    /* Remember to deal with rst signal */
 
 always_comb
 begin : state_actions

@@ -3,6 +3,7 @@ import rv32i_types::*;
 module ir
 (
     input clk,
+    input rst,
     input load,
     input [31:0] in,
     output [2:0] funct3,
@@ -32,11 +33,20 @@ assign rs1 = data[19:15];
 assign rs2 = data[24:20];
 assign rd = data[11:7];
 
+//why "=" instead of "<="
 always_ff @(posedge clk)
 begin
-    if (load == 1)
+    if (rst)
     begin
-        data = in;
+        data <= '0;
+    end
+    else if (load == 1)
+    begin
+        data <= in;
+    end
+    else
+    begin
+        data <= data;
     end
 end
 

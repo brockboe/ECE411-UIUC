@@ -1,4 +1,3 @@
-
 module array #(
     parameter s_index = 3,
     parameter width = 1
@@ -45,4 +44,3 @@ begin
 end
 
 endmodule : array
-

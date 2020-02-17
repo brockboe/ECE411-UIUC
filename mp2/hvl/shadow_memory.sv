@@ -1,63 +1,59 @@
-module shadow_memory
-(
-    input clk,
+module shadow_memory(cache_monitor_itf.cache_monitor cache_itf);
 
-    input valid,
-    input logic [3:0] wmask,
-    input logic [3:0] rmask,
-    input logic [31:0] addr,
-    input logic [31:0] wdata,
-    input logic [31:0] rdata,
-    input logic [31:0] pc_rdata,
-    input logic [31:0] insn,
-    output logic error
-);
+logic [255:0] _mem [logic [31:5]];
 
-logic [255:0] mem [2**(22)]; //only get fraction of 4GB addressable space due to modelsim limits
-logic [21:0] internal_address;
-logic [21:0] internal_pc_address;
-logic [2:0] internal_offset;
-logic [2:0] internal_pc_offset;
-logic [31:0] spec_rdata;
-logic [31:0] spec_insn;
+function void _new(string filepath);
+    $readmemh(filepath, _mem);
+endfunction
 
-/* Initialize memory contents from memory.lst file */
-initial
-begin
-    $readmemh("memory.lst", mem);
-    error = 0;
+function automatic logic [31:0] read(logic [31:0] addr);
+    logic [255:0] line;
+    logic [31:0] rv;
+    line = _mem[addr[31:5]];
+    rv = line[8*{addr[4:2], 2'b00} +: 32];
+    return rv;
+endfunction
+
+function automatic void write(logic [31:0] addr, logic [31:0] wdata,
+                              logic [3:0] mem_byte_enable);
+    logic [255:0] line;
+    line = _mem[addr[31:5]];
+    foreach (mem_byte_enable[i]) begin
+        if (mem_byte_enable[i])
+            line[8*({addr[4:2], 2'b00} + i) +: 8] = wdata[8*i +: 8];
+    end
+    _mem[addr[31:5]] = line;
+endfunction
+
+
+int errcount = 0;
+initial begin
+    logic [31:0] rdata;
+    logic _read;
+    _new("memory.lst");
+    forever begin
+        @(cache_itf.cmcb iff cache_itf.cmcb.read || cache_itf.cmcb.write)
+        if (cache_itf.cmcb.read) begin
+            rdata = read(cache_itf.cmcb.addr);
+            _read = 1'b1;
+        end
+        else begin
+            write(cache_itf.cmcb.addr, cache_itf.cmcb.wdata,
+                     cache_itf.cmcb.mbe);
+            _read = 1'b0;
+        end
+        @(cache_itf.cmcb iff cache_itf.cmcb.resp)
+        if (_read) begin
+            if (rdata != cache_itf.cmcb.rdata) begin
+                $display("%0t: ShadowCache Error: Mismatch rdata:", $time,
+                    " Expected %8h, Detected: %8h", rdata,
+                    cache_itf.cmcb.rdata);
+                errcount++;
+            end
+        end
+
+    end
 end
 
-/* Calculate internal address */
-assign internal_address = addr[26:5];
-assign internal_offset = addr[4:2];
-assign internal_pc_address = pc_rdata[26:5];
-assign internal_pc_offset = pc_rdata[4:2];
 
-/* Expected values to be read */
-assign spec_rdata = mem[internal_address][(internal_offset*32) +: 32];
-assign spec_insn = mem[internal_pc_address][(internal_pc_offset*32) +: 32];
-
-/* Update */
-always @(posedge clk)
-begin : mem_write
-    if (valid) begin
-        for (int i = 0; i < 4; i++) begin
-            if (wmask[i]) begin
-                mem[internal_address][((internal_offset*32) + (i*8)) +: 8] = wdata[(i*8) +: 8];
-            end
-            if (rmask[i] && (spec_rdata[(i*8) +: 8] != rdata[(i*8) +: 8]))
-            begin
-                $display("Mismatch in shadow memory rdata!");
-                error = 1;
-            end
-        end
-        if (spec_insn != insn)
-        begin
-            $display("Mismatch in shadow memory instruction!");
-            error = 1;
-        end
-    end
-end : mem_write
-
-endmodule : shadow_memory
+endmodule

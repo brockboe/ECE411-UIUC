@@ -1,7 +1,7 @@
 import rv32i_types::*;
 import datapath_types::*;
 
-module mp1
+module mp2
 (
     input clk,
     input rst,
@@ -77,4 +77,4 @@ datapath datapath(
       .dpath_out(dpath_connector)
 );
 
-endmodule : mp1
+endmodule : mp2

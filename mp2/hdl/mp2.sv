@@ -13,7 +13,7 @@ module mp2
 );
 
 // Keep cpu named `cpu` for RVFI Monitor
-// Note: you have to rename your mp1 module to `cpu`
+// Note: you have to rename your mp2 module to `cpu`
 cpu cpu(.*);
 
 // Keep cache named `cache` for RVFI Monitor

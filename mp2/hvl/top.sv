@@ -36,7 +36,7 @@ assign cache_itf.write = dut.cpu.mem_write;
 assign cache_itf.mbe = dut.cpu.mem_byte_enable;
 assign cache_itf.resp = dut.cpu.mem_resp;
 source_tb tb(.itf(itf), .mem_itf(itf), .cache_itf(cache_itf));
-// For random_tb, recommend using mp1
+// For random_tb, recommend using mp2
 
 // Initial Reset
 initial begin

@@ -84,6 +84,9 @@ module testbench;
         end
         cb.resp_i <= 1'b0;
         @(cb iff cb.resp_o);
+        //$display("Input: %x", cb.line_o);
+        //$display("Output: %x", readline);
+        //$display(" ");
         repeat (5) begin
             assert(cb.line_o == readline) else begin
                 $sformat(s, "@%0t TB: read / expected\n\t%x\n\t%x", $time,
@@ -123,6 +126,8 @@ module testbench;
         end
         cb.resp_i <= 1'b0;
         @(cb iff cb.resp_o);
+       // $display("writeline: %x", writeline);
+        //$display("line_i: %x", line_i);
         assert(writeline == line_i) else begin
             $sformat(s, "@%0t TB: writeline / expected\n\t%x\n\t%x", $time,
                 writeline, line_i);

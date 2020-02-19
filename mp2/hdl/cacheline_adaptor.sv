@@ -32,7 +32,7 @@ enum int unsigned {
       state_write = 2
 } state;
 
-always @ (posedge clk) begin
+always @ (posedge clk or negedge reset_n) begin
       if (~reset_n) begin
             resp_o <= 1'b0;
             read_o <= 1'b0;

@@ -28,10 +28,10 @@ logic set_2_old;
 logic safe_write;
 logic safe_read;
 
-assign hit = ((dpath_in.tag1 == address[31:11]) & dpath_in.valid[0]) | ((dpath_in.tag2 == address[31:11]) & dpath_in.valid[1]);
+assign hit = ((dpath_in.tag1 == address[31:8]) & dpath_in.valid[0]) | ((dpath_in.tag2 == address[31:8]) & dpath_in.valid[1]);
 assign dirty = dpath_in.lru ? dpath_in.dirty2 : dpath_in.dirty1;
 
-assign set_hit = (dpath_in.tag1 == address[31:11]) ? 1'b0 : 1'b1;
+assign set_hit = (dpath_in.tag1 == address[31:8]) ? 1'b0 : 1'b1;
 assign set_1_hit = (set_hit == 1'b0);
 assign set_2_hit = (set_hit == 1'b1);
 assign set_1_old = (dpath_in.lru == 1'b0) ? 1'b0 : 1'b1;

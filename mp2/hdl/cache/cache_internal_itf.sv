@@ -23,8 +23,8 @@ typedef struct packed
 
 typedef struct packed
 {
-      logic [20:0] tag1;
-      logic [20:0] tag2;
+      logic [23:0] tag1;
+      logic [23:0] tag2;
       logic dirty1;
       logic dirty2;
       logic lru;

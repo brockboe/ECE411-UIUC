@@ -50,6 +50,9 @@ _start:
       lw x2, b
       and x1, x1, x2
 
+done:
+      beq x0, x0, done
+
 zero: .word 0x00000000
 a:    .word 0xF0000000
 b:    .word 0xF0000001

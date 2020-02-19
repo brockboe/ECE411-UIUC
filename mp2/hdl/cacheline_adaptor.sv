@@ -44,7 +44,7 @@ always @ (posedge clk) begin
       end else begin
             if(read_i || (state == state_read)) begin
                   write_o <= 1'b0;
-                  read_o <= 1'b1;
+                  read_o = read_o;
                   state <= state_read;
 
                   if(i < 4) begin
@@ -54,13 +54,19 @@ always @ (posedge clk) begin
                               i <= i + 1;
                         end else begin
                               i <= i;
+                              read_o = 1'b1;
                         end
+                  end
+
+                  if(i == 2) begin
+                        read_o = 1'b0;
                   end
 
                   if(i == 4) begin
                         //$display("Here2");
                         line_o <= int_buffer;
                         resp_o <= 1'b1;
+                        read_o <= 1'b0;
                         ready <= 1;
                         i <= 5;
                   end
@@ -69,6 +75,7 @@ always @ (posedge clk) begin
                         //$display("here");
                         resp_o <= 1'b0;
                         write_o <= 1'b0;
+                        read_o <= 1'b0;
                         ready <= 0;
                         state <= state_idle;
                   end

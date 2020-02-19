@@ -25,6 +25,9 @@ logic set_2_hit;
 logic set_1_old;
 logic set_2_old;
 
+logic safe_write;
+logic safe_read;
+
 assign hit = ((dpath_in.tag1 == address[31:11]) & dpath_in.valid[0]) | ((dpath_in.tag2 == address[31:11]) & dpath_in.valid[1]);
 assign dirty = dpath_in.lru ? dpath_in.dirty2 : dpath_in.dirty1;
 
@@ -33,6 +36,9 @@ assign set_1_hit = (set_hit == 1'b0);
 assign set_2_hit = (set_hit == 1'b1);
 assign set_1_old = (dpath_in.lru == 1'b0) ? 1'b0 : 1'b1;
 assign set_2_old = (dpath_in.lru == 1'b1) ? 1'b0 : 1'b1;
+
+assign safe_write = cpu_write & (~cpu_read);
+assign safe_read = cpu_read & (~cpu_write);
 
 enum int unsigned {
       reset       = 0,
@@ -163,12 +169,12 @@ always_comb begin
       end else begin
 
             if(state == idle) begin
-                  if((cpu_write == 0) & (cpu_read == 0))
+                  if((safe_write == 0) & (safe_read == 0))
                         next_state <= idle;
                   else begin
-                        if(hit & cpu_write)
+                        if(hit & safe_write)
                               next_state <= write_hit;
-                        else if(hit & cpu_read)
+                        else if(hit & safe_read)
                               next_state <= read_hit;
                         else if(~hit & ~dirty)
                               next_state <= read_mem;

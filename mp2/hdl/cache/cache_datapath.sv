@@ -28,7 +28,7 @@ module cache_datapath #(
 
 assign mem_addr = {address[31:5], 5'd0};
 
-array #(.s_index(3), .width(21))
+array #(.s_index(3), .width(24))
 tag_array_1 (
       .clk(clk),
       .rst(rst),
@@ -40,7 +40,7 @@ tag_array_1 (
       .dataout(dpath.tag1)
 );
 
-array  #(.s_index(3), .width(21))
+array  #(.s_index(3), .width(24))
 tag_array_2 (
       .clk(clk),
       .rst(rst),

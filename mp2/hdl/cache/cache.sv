@@ -36,7 +36,7 @@ cache_internal_itf::ctrl_sig ctrl_connector;
 
 logic [255:0] bus_wdata;
 logic [255:0] bus_rdata;
-logic [31:0] mem_byte_enable_256;
+logic [31:0] mem_byte_enable256;
 
 logic [255:0] cacheline_out;
 assign line_i = cacheline_out;

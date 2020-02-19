@@ -60,14 +60,14 @@ cache cache
       .address_i(address_i),
       .read_i(read_i),
       .write_i(write_i),
-      .resp_o(resp_0)
+      .resp_o(resp_o)
 );
 
 // From MP0
 cacheline_adaptor cacheline_adaptor
 (
       .clk(clk),
-      .reset_n(rst),
+      .reset_n(~rst),
 
       .line_i(line_i),
       .line_o(line_o),
@@ -75,6 +75,7 @@ cacheline_adaptor cacheline_adaptor
       .read_i(read_i),
       .write_i(write_i),
       .resp_o(resp_o),
+      .resp_i(pmem_resp),
 
       .burst_i(pmem_rdata),
       .burst_o(pmem_wdata),

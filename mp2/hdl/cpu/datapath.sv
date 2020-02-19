@@ -68,8 +68,10 @@ assign mdrreg_out = glue.dpath.mdrreg_out;
 /***************************** Registers *************************************/
 
 logic [31:0] mem_write;
+logic [31:0] mem_addr;
 
 assign mem_address = {glue.dpath.mem_address[31:2], 2'd0};
+assign mem_addr = {glue.dpath.mem_address[31:2], 2'd0};
 
 // Keep Instruction register named `IR` for RVFI Monitor
 ir IR(

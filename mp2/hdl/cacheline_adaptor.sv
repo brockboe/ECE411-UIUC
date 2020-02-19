@@ -43,17 +43,18 @@ always @ (posedge clk) begin
             i <= 0;
       end else begin
             if(read_i || (state == state_read)) begin
-                  read_o <= 1'b1;
                   write_o <= 1'b0;
+                  read_o <= 1'b1;
                   state <= state_read;
 
                   if(i < 4) begin
                         //$display("%x, %d, %d", burst_i, resp_i, i);
                         int_buffer[64*i +: 64] <= burst_i;
-                        if (resp_i)
+                        if (resp_i) begin
                               i <= i + 1;
-                        else
+                        end else begin
                               i <= i;
+                        end
                   end
 
                   if(i == 4) begin
@@ -67,7 +68,6 @@ always @ (posedge clk) begin
                   if(ready) begin
                         //$display("here");
                         resp_o <= 1'b0;
-                        read_o <= 1'b0;
                         write_o <= 1'b0;
                         ready <= 0;
                         state <= state_idle;

@@ -151,7 +151,24 @@ always_comb begin
                   cache_resp = 1'b1;
             end else if (dpath_in.valid == 2'b01) begin
                   cache_resp = 1'b1;
+                  ctrl_out.ld_dirty_2 = 1'b1;
+                  ctrl_out.dirty_in_2 = 1'b0;
+                  ctrl_out.ld_lru = 1'b1;
+                  ctrl_out.lru_in = 1'b1;
+                  ctrl_out.ld_valid = 1'b1;
+                  ctrl_out.valid_in = 2'b11;
+                  ctrl_out.output_sel = data_way2;
+                  cache_resp = 1'b1;
             end else begin
+                  ctrl_out.ld_dirty_1 = set_1_old;
+                  ctrl_out.dirty_in_1 = 1'b0;
+                  ctrl_out.ld_dirty_2 = set_2_old;
+                  ctrl_out.dirty_in_2 = 1'b0;
+                  ctrl_out.ld_lru = 1'b1;
+                  ctrl_out.lru_in = ~(dpath_in.lru);
+                  ctrl_out.ld_valid = 1'b1;
+                  ctrl_out.valid_in = 2'b11;
+                  ctrl_out.output_sel = ~(dpath_in.lru);
                   cache_resp = 1'b1;
             end
       end
@@ -177,9 +194,9 @@ always_comb begin
                         else if(hit & safe_read)
                               next_state <= read_hit;
                         else if(~hit & ~dirty)
-                              next_state <= read_mem;
+                              next_state <= read_hit;
                         else
-                              next_state <= write_dirt;
+                              next_state <= write_hit;
                   end
             end
 

@@ -55,12 +55,12 @@ cache cache
       .mem_address(mem_address),
       .mem_wdata(mem_wdata),
 
-      .line_i(line_i),
-      .line_o(line_o),
-      .address_i(address_i),
-      .read_i(read_i),
-      .write_i(write_i),
-      .resp_o(resp_o)
+      .pmem_rdata(line_o),
+      .pmem_wdata(line_i),
+      .pmem_address(address_i),
+      .pmem_read(read_i),
+      .pmem_write(write_i),
+      .pmem_resp(resp_o)
 );
 
 // From MP0

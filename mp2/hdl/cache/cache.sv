@@ -15,20 +15,20 @@ module cache #(
 
       // connection to CPU
       output mem_resp,
-      output rv32i_word mem_rdata,
       input logic mem_read,
       input logic mem_write,
       input logic [3:0] mem_byte_enable,
       input rv32i_word mem_address,
+      output rv32i_word mem_rdata,
       input rv32i_word mem_wdata,
 
       // connection to cacheline adaptor
-      output logic [255:0] line_i,
-      input logic [255:0] line_o,
-      output logic [31:0] address_i,
-      output read_i,
-      output write_i,
-      input logic resp_o
+      output logic [255:0] pmem_wdata,
+      input logic [255:0] pmem_rdata,
+      output logic [31:0] pmem_address,
+      output pmem_read,
+      output pmem_write,
+      input logic pmem_resp
 );
 
 cache_internal_itf::dpath_out dpath_connector;
@@ -39,7 +39,7 @@ logic [255:0] bus_rdata;
 logic [31:0] mem_byte_enable256;
 
 logic [255:0] cacheline_out;
-assign line_i = cacheline_out;
+assign pmem_wdata = cacheline_out;
 assign bus_rdata = cacheline_out;
 
 cache_control control
@@ -48,10 +48,10 @@ cache_control control
       .rst(rst),
       .cpu_write(mem_write),
       .cpu_read(mem_read),
-      .mem_resp(resp_o),
+      .mem_resp(pmem_resp),
       .cache_resp(mem_resp),
-      .mem_read(read_i),
-      .mem_write(write_i),
+      .mem_read(pmem_read),
+      .mem_write(pmem_write),
       .ctrl_out(ctrl_connector),
       .dpath_in(dpath_connector),
       .address(mem_address)
@@ -64,11 +64,11 @@ cache_datapath datapath
       .ctrl_in(ctrl_connector),
       .dpath(dpath_connector),
       .address(mem_address),
-      .cacheline_in(line_o),
+      .cacheline_in(pmem_rdata),
       .bus_adaptor_line_in(bus_wdata),
       .bus_adaptor_write_en(mem_byte_enable256),
       .cacheline_out(cacheline_out),
-      .mem_addr(address_i)
+      .mem_addr(pmem_address)
 );
 
 bus_adapter bus_adapter

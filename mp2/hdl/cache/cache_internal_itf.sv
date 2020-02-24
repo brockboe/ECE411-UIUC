@@ -19,6 +19,7 @@ typedef struct packed
       logic write_sel_2;
 
       logic output_sel;
+      logic pmem_address;
 } ctrl_sig;
 
 typedef struct packed
@@ -47,5 +48,10 @@ typedef enum logic {
       data_way1 = 1'b0,
       data_way2 = 1'b1
 } output_sel_t;
+
+typedef enum logic {
+      cpu = 1'b0,
+      write_dirt = 1'b1
+} pmem_sel_t;
 
 endpackage

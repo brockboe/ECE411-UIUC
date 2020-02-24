@@ -29,7 +29,7 @@ logic safe_write;
 logic safe_read;
 
 assign hit = ((dpath_in.tag1 == address[31:8]) & dpath_in.valid[0]) | ((dpath_in.tag2 == address[31:8]) & dpath_in.valid[1]);
-assign dirty = dpath_in.lru ? dpath_in.dirty2 : dpath_in.dirty1;
+assign dirty = dpath_in.lru ? dpath_in.dirty1 : dpath_in.dirty2;
 
 assign set_hit = (dpath_in.tag1 == address[31:8]) ? 1'b0 : 1'b1;
 assign set_1_hit = (set_hit == 1'b0);
@@ -74,6 +74,7 @@ function void set_defaults();
       ctrl_out.write_en_sel2 = nowrite;
       ctrl_out.write_sel_2 = cacheline;
       ctrl_out.output_sel = ctrl_out.output_sel;
+      ctrl_out.pmem_address = cpu;
       cache_resp = 1'b0;
       mem_read = 1'b0;
       mem_write = 1'b0;
@@ -106,7 +107,7 @@ always_comb begin
 
       else if (state == write_dirt) begin
             mem_write = 1'b1;
-            ctrl_out.output_sel = ~dpath_in.lru;
+            ctrl_out.output_sel = ~(dpath_in.lru);
       end
 
       else if (state == read_mem) begin
@@ -173,6 +174,43 @@ always_comb begin
             end
       end
 
+      else if (state == write_data) begin
+            if(dpath_in.valid == 2'b00) begin
+                  ctrl_out.ld_dirty_1 = 1'b1;
+                  ctrl_out.dirty_in_1 = 1'b1;
+                  ctrl_out.ld_lru = 1'b1;
+                  ctrl_out.lru_in = 1'b0;
+                  ctrl_out.ld_valid = 1'b1;
+                  ctrl_out.valid_in = 2'b01;
+                  ctrl_out.write_en_sel1 = cpuwrite;
+                  cache_resp = 1'b1;
+                  ctrl_out.output_sel = 1'b0;
+            end else if (dpath_in.valid == 2'b01) begin
+                  ctrl_out.ld_dirty_2 = 1'b1;
+                  ctrl_out.dirty_in_2 = 1'b1;
+                  ctrl_out.ld_lru = 1'b1;
+                  ctrl_out.lru_in = 1'b1;
+                  ctrl_out.ld_valid = 1'b1;
+                  ctrl_out.valid_in = 2'b11;
+                  ctrl_out.write_en_sel2 = cpuwrite;
+                  cache_resp = 1'b1;
+                  ctrl_out.output_sel = 1'b1;
+            end else begin
+                  ctrl_out.ld_dirty_1 = set_1_old;
+                  ctrl_out.ld_dirty_2 = set_2_old;
+                  ctrl_out.dirty_in_1 = 1'b1;
+                  ctrl_out.dirty_in_2 = 1'b1;
+                  ctrl_out.ld_lru = 1'b1;
+                  ctrl_out.lru_in = ~(dpath_in.lru);
+                  ctrl_out.ld_valid = 1'b1;
+                  ctrl_out.valid_in = 2'b11;
+                  ctrl_out.write_en_sel1 = set_1_old ? cpuwrite : nowrite;
+                  ctrl_out.write_en_sel2 = set_2_old ? cpuwrite : nowrite;
+                  cache_resp = 1'b1;
+                  ctrl_out.output_sel = ~(dpath_in.lru);
+            end
+      end
+
       else begin
             set_defaults();
       end
@@ -193,7 +231,7 @@ always_comb begin
                               next_state <= write_hit;
                         else if(hit & safe_read)
                               next_state <= read_hit;
-                        else if(~hit & ~dirty)
+                        else if(~hit & safe_read)
                               next_state <= read_hit;
                         else
                               next_state <= write_hit;
@@ -203,12 +241,23 @@ always_comb begin
             else if(state == read_hit) begin
                   if(hit)
                         next_state <= idle;
-                  else
-                        next_state <= read_mem;
+                  else begin
+                        if(~dirty)
+                              next_state <= read_mem;
+                        else
+                              next_state <= write_dirt;
+                  end
             end
 
             else if(state == write_hit) begin
-                  next_state <= idle;
+                  if(hit)
+                        next_state <= idle;
+                  else begin
+                        if(~dirty)
+                              next_state <= read_mem;
+                        else
+                              next_state <= write_dirt;
+                  end
             end
 
             else if(state == write_dirt) begin

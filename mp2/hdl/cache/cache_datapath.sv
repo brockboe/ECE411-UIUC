@@ -26,7 +26,8 @@ module cache_datapath #(
       output logic [255:0] cacheline_out
 );
 
-assign mem_addr = {address[31:5], 5'd0};
+logic [23:0] old_tag;
+assign old_tag = dpath.lru ? dpath.tag1 : dpath.tag2;
 
 array #(.s_index(3), .width(24))
 tag_array_1 (
@@ -163,6 +164,12 @@ always_comb begin
             data_way1: cacheline_out = data_array_dataout_1;
             data_way2: cacheline_out = data_array_dataout_2;
             default: cacheline_out = data_array_dataout_1;
+      endcase
+
+      unique case (ctrl_in.pmem_address)
+            cpu: mem_addr = {address[31:5], 5'd0};
+            write_dirt: mem_addr = {old_tag, address[7:5], 5'd0};
+            default: mem_addr = {address[31:5], 5'd0};
       endcase
 end
 

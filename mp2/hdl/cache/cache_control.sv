@@ -108,6 +108,7 @@ always_comb begin
       else if (state == write_dirt) begin
             mem_write = 1'b1;
             ctrl_out.output_sel = ~(dpath_in.lru);
+            ctrl_out.pmem_address = write_dirt;
       end
 
       else if (state == read_mem) begin

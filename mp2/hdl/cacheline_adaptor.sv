@@ -83,24 +83,27 @@ always @ (posedge clk or negedge reset_n) begin
             end else if (write_i || (state == state_write)) begin
 
                   state <= state_write;
-                  write_o <= 1'b1;
+                  write_o = write_o;
                   read_o <= 1'b0;
 
                   //$display("%x", line_i);
                   if(i < 4) begin
                         if (resp_i)
                               i = i + 1;
-                        else
+                        else begin
                               i = i;
+                              write_o = 1'b1;
+                        end
                         //$display("%x, %d", burst_o, i);
                         burst_o = line_i[64*i +: 64];
-                        resp_o = 1'b1;
 
                   end
 
                   if(i == 4) begin
                         ready <= 1;
+                        resp_o = 1'b1;
                         i <= 5;
+                        write_o = 1'b0;
                   end
 
                   if(ready) begin

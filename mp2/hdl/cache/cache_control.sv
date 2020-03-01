@@ -73,7 +73,7 @@ function void set_defaults();
       ctrl_out.write_sel_1 = cacheline;
       ctrl_out.write_en_sel2 = nowrite;
       ctrl_out.write_sel_2 = cacheline;
-      ctrl_out.output_sel = ctrl_out.output_sel;
+      ctrl_out.output_sel = data_way1;
       ctrl_out.pmem_address = cpu;
       cache_resp = 1'b0;
       mem_read = 1'b0;
@@ -212,9 +212,6 @@ always_comb begin
             end
       end
 
-      else begin
-            set_defaults();
-      end
 end
 
 // next state calculation

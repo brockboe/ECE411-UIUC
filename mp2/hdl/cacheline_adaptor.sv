@@ -21,7 +21,6 @@ module cacheline_adaptor
 );
 
 logic [255:0] int_buffer;
-logic [4:0] counter;
 assign address_o = address_i;
 int i;
 int ready;
@@ -33,11 +32,11 @@ enum int unsigned {
 } state;
 
 always @ (posedge clk or negedge reset_n) begin
+
       if (~reset_n) begin
             resp_o <= 1'b0;
             read_o <= 1'b0;
             write_o <= 1'b0;
-            counter <= 5'd0;
             state <= state_idle;
             ready <= 0;
             i <= 0;
@@ -118,7 +117,6 @@ always @ (posedge clk or negedge reset_n) begin
                   resp_o <= 1'b0;
                   write_o <= 1'b0;
                   read_o <= 1'b0;
-                  counter <= 5'd0;
                   i <= 0;
                   ready <= 0;
                   state <= state_idle;

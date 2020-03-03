@@ -5,13 +5,6 @@ cache_rw_test.s:
 
 _start:
 
-      lw x1, zerom
-      lw x1, onem
-      lw x1, twom
-      lw x1, threem
-      lw x1, fourm
-      lw x1, fivem
-
       xor x1, x1, x1
 
       la x2, zerom
@@ -27,14 +20,14 @@ _start:
       la x2, fivem
       sw x1, 0(x2)
 
-      beq x0, x0, skip
+      lw x1, zerom
+      lw x1, onem
+      lw x1, twom
+      lw x1, threem
+      lw x1, fourm
+      lw x1, fivem
 
-zerom:       .word 0x00000000
-onem:        .word 0x00000001
-twom:        .word 0x00000002
-threem:      .word 0x00000003
-fourm:       .word 0x00000004
-fivem:       .word 0x00000005
+      beq x0, x0, skip
 
 skip:
       lw x1, zero
@@ -354,6 +347,13 @@ skip:
 
 done:
       beq x0, x0, done
+
+zerom:       .word 0x00000000
+onem:        .word 0x00000001
+twom:        .word 0x00000002
+threem:      .word 0x00000003
+fourm:       .word 0x00000004
+fivem:       .word 0x00000005
 
 
 zero:       .word 0x00000000

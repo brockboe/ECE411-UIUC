@@ -184,6 +184,7 @@ always_comb begin
                   ctrl_out.ld_valid = 1'b1;
                   ctrl_out.valid_in = 2'b01;
                   ctrl_out.write_en_sel1 = cpuwrite;
+                  ctrl_out.write_sel_1 = bus_adaptor;
                   cache_resp = 1'b1;
                   ctrl_out.output_sel = 1'b0;
             end else if (dpath_in.valid == 2'b01) begin
@@ -194,6 +195,7 @@ always_comb begin
                   ctrl_out.ld_valid = 1'b1;
                   ctrl_out.valid_in = 2'b11;
                   ctrl_out.write_en_sel2 = cpuwrite;
+                  ctrl_out.write_sel_2 = bus_adaptor;
                   cache_resp = 1'b1;
                   ctrl_out.output_sel = 1'b1;
             end else begin
@@ -207,6 +209,8 @@ always_comb begin
                   ctrl_out.valid_in = 2'b11;
                   ctrl_out.write_en_sel1 = set_1_old ? cpuwrite : nowrite;
                   ctrl_out.write_en_sel2 = set_2_old ? cpuwrite : nowrite;
+                  ctrl_out.write_sel_1 = bus_adaptor;
+                  ctrl_out.write_sel_2 = bus_adaptor;
                   cache_resp = 1'b1;
                   ctrl_out.output_sel = ~(dpath_in.lru);
             end

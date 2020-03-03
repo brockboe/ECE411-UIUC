@@ -244,7 +244,7 @@ always_comb begin
                   if(hit)
                         next_state <= idle;
                   else begin
-                        if(~dirty)
+                        if((~dirty) || (dpath_in.valid != 2'b11))
                               next_state <= read_mem;
                         else
                               next_state <= write_dirt;
@@ -255,7 +255,7 @@ always_comb begin
                   if(hit)
                         next_state <= idle;
                   else begin
-                        if(~dirty)
+                        if((~dirty) || (dpath_in.valid != 2'b11))
                               next_state <= read_mem;
                         else
                               next_state <= write_dirt;

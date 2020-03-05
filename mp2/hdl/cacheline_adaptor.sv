@@ -14,14 +14,13 @@ module cacheline_adaptor
     // Port to memory
     input logic [63:0] burst_i,
     output logic [63:0] burst_o,
-    output logic [31:0] address_o,
+    output reg [31:0] address_o,
     output logic read_o,
     output logic write_o,
     input resp_i
 );
 
 logic [255:0] int_buffer;
-assign address_o = address_i;
 int i;
 int ready;
 
@@ -32,6 +31,8 @@ enum int unsigned {
 } state;
 
 always @ (posedge clk or negedge reset_n) begin
+
+      address_o = address_i;
 
       if (~reset_n) begin
             resp_o <= 1'b0;
